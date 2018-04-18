@@ -1,0 +1,47 @@
+developer=https://aaronparecki.com/
+url=${developer}
+maintainer=http://indiecomputing.com/
+pkgname=$(basename $(pwd))
+pkgver=0.0.1
+pkgrel=1
+_commit=6ec1ccf88279d7cd92df462cd4009be20bffab54
+pkgdesc="API for watching web pages for changes"
+arch=('any')
+license=("Apache2")
+source=("git+https://github.com/aaronpk/Watchtower#commit=${_commit}")
+releasepage=('https://github.com/aaronpk/Watchtower/commits/master')
+options=('!strip')
+sha512sums=('SKIP')
+
+build() {
+    cd Watchtower
+
+    composer install
+}
+
+package() {
+# Manifest
+   install -D -m0644 ${startdir}/ubos-manifest.json ${pkgdir}/ubos/lib/ubos/manifests/${pkgname}.json
+
+# Icons
+#    install -D -m0644 ${startdir}/appicons/{72x72,144x144}.png -t ${pkgdir}/ubos/http/_appicons/${pkgname}/
+
+# Data directory
+#    mkdir -p ${pkgdir}/ubos/lib/${pkgname}
+
+# Configuration directory
+    mkdir -p ${pkgdir}/etc/watchtower
+
+# Templates
+    install -D -m0644 ${startdir}/tmpl/*.tmpl -t ${pkgdir}/ubos/share/${pkgname}/tmpl
+
+# Systemd
+    install -D -m0644 ${startdir}/systemd/*.service -t ${pkgdir}/usr/lib/systemd/system/
+
+# Logging
+    mkdir -p ${pkgdir}/var/log/${pkgname}
+
+# Code
+    install -D -m0755 ${startdir}/bin/* -t ${pkgdir}/ubos/share/${pkgname}/bin/
+    cp -r -p ${srcdir}/Watchtower/* ${pkgdir}/ubos/share/${pkgname}/
+}

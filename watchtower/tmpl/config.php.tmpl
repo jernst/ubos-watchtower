@@ -1,0 +1,13 @@
+<?php
+class Config {
+  public static $base_url = '${site.protocol}://${site.hostname}';
+
+  public static $dbHost = '${appconfig.mysql.dbhost.maindb}';
+  public static $dbName = '${appconfig.mysql.dbname.maindb}';
+  public static $dbUsername = '${appconfig.mysql.dbuser.maindb}';
+  public static $dbPassword = '${appconfig.mysql.dbusercredential.maindb}';
+
+  public static $beanstalkServer = '127.0.0.1';
+  public static $beanstalkPort = ${appconfig.tcpport.beanstalk};
+
+}

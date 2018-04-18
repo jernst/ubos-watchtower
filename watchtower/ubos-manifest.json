@@ -1,0 +1,140 @@
+{
+    "type" : "app",
+
+    "roles" : {
+        "apache2" : {
+            "fixedcontext" : "",
+
+            "depends" : [
+                "php",
+                "php-apache",
+                "beanstalkd"
+            ],
+            "apache2modules" : [
+                "php7"
+            ],
+            "phpmodules" : [
+                "pdo_mysql"
+            ],
+
+            "appconfigitems" : [
+                {
+                    "type"         : "tcpport",
+                    "name"         : "beanstalk"
+                },
+                {
+                    "type"         : "file",
+                    "name"         : "${appconfig.apache2.appconfigfragmentfile}",
+                    "template"     : "tmpl/htaccess.tmpl",
+                    "templatelang" : "varsubst"
+                },
+                {
+                    "type"   : "perlscript",
+                    "source" : "bin/create-logdir.pl"
+                },
+                {
+                    "type" : "directorytree",
+                    "names" : [
+                        "controllers",
+                        "jobs",
+                        "lib",
+                        "public",
+                        "vendor",
+                        "views"
+                    ],
+                    "source" : "/ubos/share/watchtower/$2"
+                },
+                {
+                    "type" : "directory",
+                    "name" : "scripts"
+                },
+                {
+                    "type" : "file",
+                    "names" : [
+                        "scripts/cron.php",
+                        "scripts/debug.php",
+                        "scripts/stats.php"
+                    ],
+                    "source" : "/ubos/share/watchtower/scripts/$2"
+                },
+                {
+                    "type"   : "symlink",
+                    "name"   : "scripts/logs",
+                    "source" : "/var/log/${package.name}/${appconfig.appconfigid}"
+                },
+                {
+                    "type"         : "file",
+                    "name"         : "${appconfig.apache2.dir}/lib/config.php",
+                    "template"     : "tmpl/config.php.tmpl",
+                    "templatelang" : "varsubst"
+                },
+                {
+                    "type"         : "file",
+                    "name"         : "/etc/watchtower/${appconfig.appconfigid}-config.php",
+                    "template"     : "tmpl/instance-config.php.tmpl",
+                    "templatelang" : "varsubst"
+                },
+                {
+                    "type"         : "file",
+                    "name"         : "/etc/conf.d/beanstalkd-${appconfig.appconfigid}",
+                    "template"     : "/usr/share/beanstalkd/tmpl/beanstalkd.conf.tmpl",
+                    "templatelang" : "varsubst"
+                },
+                {
+                    "type"         : "systemd-service",
+                    "name"         : "beanstalkd@${appconfig.appconfigid}",
+                },
+                {
+                    "type"         : "systemd-service",
+                    "name"         : "watchtower@${appconfig.appconfigid}",
+                },
+                {
+                    "type"         : "file",
+                    "name"         : "${appconfig.cronjobfile}",
+                    "template"     : "tmpl/cronjob.tmpl",
+                    "templatelang" : "varsubst"
+                }
+            ],
+            "installers" : [
+                {
+                    "type"   : "perlscript",
+                    "source" : "bin/create-account.pl"
+                }
+            ]
+        },
+        "mysql" : {
+            "appconfigitems" : [
+                {
+                    "type"             : "database",
+                    "name"             : "maindb",
+                    "retentionpolicy"  : "keep",
+                    "retentionbucket"  : "maindb",
+                    "privileges"       : "all privileges"
+                }
+            ],
+            "installers" : [
+                {
+                    "name"   : "maindb",
+                    "type"   : "sqlscript",
+                    "source" : "schema/schema.sql"
+                }
+            ]
+        }
+    },
+    "customizationpoints" : {
+        "userurl" : {
+            "name"     : "User's URL for IndieAuth purposes",
+            "type"     : "url",
+            "required" : true
+        },
+        "usertoken" : {
+            "name"     : "Secret token for authentication",
+            "type"     : "password",
+            "required" : false,
+            "private"  : true,
+            "default"  : {
+                "expression" : "${randomPassword(64)}"
+            }
+        }
+    }
+}

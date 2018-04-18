@@ -1,0 +1,11 @@
+ [Unit]
+ Description=Watchtower worker
+ Requires=beanstalkd@%i.service
+
+ [Service]
+ User=http
+ ExecStart=/usr/bin/php /ubos/share/watchtower/bin/watchtower-daemon.php /etc/watchtower/%i-config.php
+ Restart=always
+
+ [Install]
+ WantedBy=multi-user.target
